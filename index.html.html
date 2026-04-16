@@ -1,97 +1,91 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    
-
     <meta charset="UTF-8">
-    <title>আমার স্মার্ট স্যালারি ক্যালকুলেটর</title>
+    <title>স্মার্ট স্যালারি ড্যাশবোর্ড</title>
+    <!-- ১. Chart.js লাইব্রেরি (এটি অবশ্যই লাগবে) -->
     <script src="https://jsdelivr.net"></script>
+    
     <style>
-        /* CSS: ডিজাইন অংশ */
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 15px; shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; text-align: center; border: 1px solid #ddd; }
-        h2 { color: #2c3e50; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.3s; }
-        button:hover { background-color: #219150; }
-        .result-box { margin-top: 25px; padding: 15px; background: #e8f6ef; border-radius: 8px; display: none; }
-        .result-text { font-size: 18px; font-weight: bold; color: #27ae60; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 50px; }
+        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        h2 { color: #1a73e8; }
+        input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: #1a73e8; outline: none; }
+        button { width: 100%; padding: 15px; background-color: #1a73e8; color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #1557b0; }
+        .result-box { margin-top: 30px; display: none; text-align: left; }
+        .take-home-amount { font-size: 28px; font-weight: bold; color: #2d3436; margin: 10px 0; }
+        .ai-card { background: #e3f2fd; padding: 15px; border-radius: 10px; border-left: 5px solid #1a73e8; margin-top: 20px; font-size: 14px; }
+        canvas { margin-top: 20px; max-height: 300px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>স্যালারি ক্যালকুলেটর</h2>
-        <input type="number" id="ctcInput" placeholder="আপনার Monthly CTC লিখুন (₹)">
-        <button onclick="calculateSalary()">হিসাব করুন</button>
+        <h2>স্মার্ট পে-রোল AI</h2>
+        <input type="number" id="ctcInput" placeholder="আপনার বাৎসরিক CTC লিখুন (₹)">
+        <button onclick="calculateSalary()">হিসাব শুরু করুন</button>
 
         <div id="resultBox" class="result-box">
-            <p>আপনার মাসিক হাতে পাওয়া বেতন (Take-Home):</p>
-            <div id="takeHomeResult" class="result-text"></div>
-             <canvas id="salaryChart" width="400" height="400" style="margin-top: 20px;"></canvas>
-    
-             <p style="font-size: 12px; color: #666; margin-top: 10px;">*এখানে ১২% EPF এবং ২০০ টাকা প্রফেশনাল ট্যাক্স বাদ দেওয়া হয়েছে।</p>
+            <p style="color: #636e72; margin-bottom: 5px;">মাসিক টেক-হোম বেতন:</p>
+            <div id="takeHomeResult" class="take-home-amount"></div>
+            
+            <!-- চার্টের জায়গা -->
+            <canvas id="salaryChart"></canvas>
+
+            <!-- AI পরামর্শ কার্ড -->
+            <div id="aiAdvice" class="ai-card"></div>
         </div>
     </div>
 
     <script>
         function calculateSalary() {
-    let ctc = document.getElementById('ctcInput').value;
-    
-    if(ctc === "" || ctc <= 0) {
-        alert("দয়া করে সঠিক অংক লিখুন");
-        return;
-    }
+            let ctc = document.getElementById('ctcInput').value;
+            if(!ctc || ctc <= 0) { alert("সঠিক বেতন লিখুন"); return; }
 
-    let monthlyGross = ctc / 12;
-    let basicPay = monthlyGross * 0.50;
-    let epf = basicPay * 0.12;
-    let profTax = 200;
-    let takeHome = monthlyGross - epf - profTax;
+            // ১. ক্যালকুলেশন
+            let monthlyGross = ctc / 12;
+            let basicPay = monthlyGross * 0.50;
+            let epf = basicPay * 0.12;
+            let profTax = 200;
+            let takeHome = monthlyGross - epf - profTax;
 
-    // --- AI Smart Advice Logic ---
-    let advice = "";
-    let color = "#2c3e50";
+            // ২. রেজাল্ট ও AI টেক্সট দেখানো
+            document.getElementById('takeHomeResult').innerText = "₹ " + takeHome.toLocaleString('en-IN');
+            document.getElementById('resultBox').style.display = "block";
 
-    if (ctc <= 750000) {
-        advice = "💡 AI পরামর্শ: আপনার আয়ের জন্য 'নতুন ট্যাক্স রেজিম' সেরা। আপনাকে কোনো ইনকাম ট্যাক্স দিতে হবে না!";
-        color = "#27ae60";
-    } else if (ctc > 750000 && ctc <= 1200000) {
-        advice = "💡 AI পরামর্শ: আপনি যদি PPF বা LIC-তে ১.৫ লক্ষ টাকা বিনিয়োগ করেন, তবে 'পুরানো রেজিম'-এ আপনি আরও বেশি টাকা বাঁচাতে পারবেন।";
-        color = "#e67e22";
-    } else {
-        advice = "💡 AI পরামর্শ: আপনার বেতন উচ্চ সীমার মধ্যে। একজন ট্যাক্স বিশেষজ্ঞের পরামর্শ নিন এবং NPS-এ বিনিয়োগের কথা ভাবুন।";
-        color = "#c0392b";
-    }
+            let advice = "";
+            if(ctc <= 750000) advice = "💡 AI: আপনার জন্য 'New Regime' সেরা। কোনো ট্যাক্স লাগবে না।";
+            else advice = "💡 AI: আপনি ১.৫ লক্ষ টাকা 80C তে ইনভেস্ট করলে ট্যাক্স বাঁচাতে পারবেন।";
+            document.getElementById('aiAdvice').innerText = advice;
 
-    // রেজাল্ট দেখানো
-    document.getElementById('takeHomeResult').innerHTML = `
-        ₹ ${takeHome.toLocaleString('en-IN', {maximumFractionDigits: 2})}
-        <div style="font-size: 14px; margin-top: 15px; color: ${color}; background: #fff; padding: 10px; border-radius: 5px; border-left: 5px solid ${color};">
-            ${advice}
-        </div>
-    `;
-    document.getElementById('resultBox').style.display = "block";
-}
+            // ৩. চার্ট তৈরি (পুরানো চার্ট মুছে নতুনটি ড্র করা)
+            let chartStatus = Chart.getChart("salaryChart");
+            if (chartStatus != undefined) chartStatus.destroy();
 
-const ctx = document.getElementById('salaryChart').getContext('2d');
-new Chart(ctx, {
-    type: 'pie',
-    data: {
-        labels: ['মাসিক বেতন (Take Home)', 'EPF (সঞ্চয়)', 'ট্যাক্স (PT)'],
-        datasets: [{
-            data: [takeHome, epf, profTax],
-            backgroundColor: ['#27ae60', '#f1c40f', '#e74c3c'],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'bottom' }
+            const ctx = document.getElementById('salaryChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut', // গোল চার্ট
+                data: {
+                    labels: ['হাতে পাবেন', 'EPF সঞ্চয়', 'ট্যাক্স'],
+                    datasets: [{
+                        data: [takeHome, epf, profTax],
+                        backgroundColor: ['#1a73e8', '#ffb142', '#ff5252'],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
         }
-    }
-});
+    </script>
+</body>
+</html>
+
     </script>
 
 </body>
